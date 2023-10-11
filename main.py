@@ -148,7 +148,8 @@ def start_function():
 
         # creates a new file called total_data with all the data
         for data in total_data:
-            store_data(data, filename='total_data.txt')
+            for data3 in data4:
+                store_data(data3, filename='total_data.txt')
 
 
 
