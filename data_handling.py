@@ -1,6 +1,20 @@
 import json
 
 
+def store_data(data, filename='data.txt'):
+    """
+    Append a list of lists to a text file where each line represents one inner list.
+
+    Args:
+        filename (str): The name of the text file to save or append the data to.
+        data (list): A list of 13 lists, each containing 3 integers.
+    """
+    with open(filename, 'a') as file:  # Use 'a' for append mode
+        # Convert the data to a JSON string and write it to the file
+        json_data = json.dumps(data)
+        file.write(json_data + '\n')
+
+
 def run_txt_to_data(line_number):
     """
     takes in the line number and returns the list of lists as lists of lists

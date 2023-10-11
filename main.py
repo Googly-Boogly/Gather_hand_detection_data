@@ -3,7 +3,7 @@ import cv2
 from handtrackingmodule import handTracker
 import random
 import json
-from data_handling import run_txt_to_data, count_lines_in_file, delete_last_n_lines
+from data_handling import run_txt_to_data, count_lines_in_file, delete_last_n_lines, store_data
 
 
 def main_loop_tests():
@@ -64,9 +64,10 @@ def main_loop_tests():
             text = rand[0]
             font_color = rand[1]
 
-        if (current_time - start_time_frames).total_seconds() >= 3:
+        if (current_time - start_time_frames).total_seconds() >= 2:
             if not text == '':
                 frames_to_send = frame_accumulator
+                print(len(frames_to_send))
                 store_data(frames_to_send)
                 text = ''
 
@@ -76,20 +77,6 @@ def main_loop_tests():
             break
     cap.release()
     cv2.destroyAllWindows()
-
-
-def store_data(data, filename='data.txt'):
-    """
-    Append a list of lists to a text file where each line represents one inner list.
-
-    Args:
-        filename (str): The name of the text file to save or append the data to.
-        data (list): A list of 19 lists, each containing 3 integers.
-    """
-    with open(filename, 'a') as file:  # Use 'a' for append mode
-        # Convert the data to a JSON string and write it to the file
-        json_data = json.dumps(data)
-        file.write(json_data + '\n')
 
 
 def add_text_to_image(image, text,font_color, position=(100, 300), font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=1, font_thickness=2):
@@ -137,7 +124,7 @@ def get_random():
 
 def start_function():
 
-    x = input('Hello, would you like to (gather) data or (view) data:')
+    x = input('Hello, would you like to (gather) data or (view) data or (combine) data: ')
     if x.lower() == 'gather':
         print('Press q to exit out')
         delete_last_n_lines() # deletes last 3 lines of the txt file incase when shutting off you moved your hand weird
@@ -146,6 +133,23 @@ def start_function():
         for x in range(count_lines_in_file()):
             data = run_txt_to_data(x + 1)
             print(data)
+    if x.lower() == 'combine':
+        data_files = ['data.txt', 'data_1.txt', 'data_2.txt', 'data_3.txt', 'data_4.txt', 'data_5.txt', 'data_6.txt',  'data_7.txt']
+        total_data = []
+        for data_file in data_files:
+            temp_data = []
+            for x in range(count_lines_in_file(filename=data_file)):
+                data = run_txt_to_data(x + 1)
+                temp_data.append(data)
+            total_data.append(temp_data)
+            # for y in total_data:
+            #     for z in y:
+            #         print(z)
+
+        # creates a new file called total_data with all the data
+        for data in total_data:
+            store_data(data, filename='total_data.txt')
+
 
 
 if __name__ == '__main__':
