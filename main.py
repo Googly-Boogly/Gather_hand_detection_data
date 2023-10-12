@@ -69,6 +69,7 @@ def main_loop_tests():
                 frames_to_send = frame_accumulator
                 print(len(frames_to_send))
                 store_data(frames_to_send)
+                store_data(data=text, filename='labels.txt')
                 text = ''
 
         key = cv2.waitKey(1000 // desired_fps)
