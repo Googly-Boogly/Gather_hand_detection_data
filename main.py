@@ -67,7 +67,7 @@ def main_loop_tests():
         if (current_time - start_time_frames).total_seconds() >= 2:
             if not text == '':
                 frames_to_send = frame_accumulator
-                print(len(frames_to_send))
+                # print(len(frames_to_send))
                 store_data(frames_to_send)
                 store_data(data=text, filename='labels.txt')
                 text = ''
