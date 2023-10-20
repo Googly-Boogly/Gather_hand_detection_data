@@ -148,11 +148,55 @@ def start_function():
             #         print(z)
 
         # creates a new file called total_data with all the data
-        for data in total_data:
-            for data3 in data4:
-                store_data(data3, filename='total_data.txt')
+        # for data in total_data:
+        #     for data3 in data4:
+        #         store_data(data3, filename='total_data.txt')
 
+def neural_network(lst):
+    print(lst)
+    print()
+    print()
 
+def send_13_frames():
+    """
+    This function will send 13 frames worth of hand tracking data to the neural network
+    :param: NA
+    :return: NA
+    """
+    cap = cv2.VideoCapture(0)
+    tracker = handTracker()
+
+    desired_fps = 10
+
+    frame_accumulator = []  # To store frames for the last 3 seconds
+    start_time_frames = datetime.now()
+    
+    while True:
+        # Read in image, create image with graph on hand and create list of graph points
+        success, image = cap.read()
+        image = tracker.handsFinder(image)
+        lmList = tracker.positionFinder(image)
+
+        # Show image with graph on screen
+        cv2.imshow("Video", image)
+        # Add list of graph points to accumulator
+        frame_accumulator.append(lmList)
+
+        # Check if we have 13 frames
+        if (len(frame_accumulator) > 13):
+            frame_accumulator.pop(0)
+            neural_network(frame_accumulator)
+
+        # Check if 3 seconds have elapsed
+        current_time = datetime.now()
+        if (current_time - start_time_frames).total_seconds() >= 10:
+            # If so, close video window and return data
+            cap.release()
+            cv2.destroyAllWindows()
+            return
+
+        cv2.waitKey(1000 // desired_fps)
 
 if __name__ == '__main__':
-    start_function()
+    send_13_frames()
+    # start_function()
