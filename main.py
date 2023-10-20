@@ -153,7 +153,7 @@ def start_function():
         #         store_data(data3, filename='total_data.txt')
 
 def neural_network(lst):
-    print(lst)
+    print("sent to NN")
     print()
     print()
 
@@ -180,7 +180,15 @@ def send_13_frames():
         # Show image with graph on screen
         cv2.imshow("Video", image)
         # Add list of graph points to accumulator
-        frame_accumulator.append(lmList)
+        if (len(lmList) == 21):
+            if lmList[20][1] < 30:
+                print('Left')
+                frame_accumulator = []
+            elif lmList[4][1] > 600:
+                print('Right')
+                frame_accumulator = []
+            else:
+                frame_accumulator.append(lmList)
 
         # Check if we have 13 frames
         if (len(frame_accumulator) > 13):
@@ -189,11 +197,11 @@ def send_13_frames():
 
         # Check if 3 seconds have elapsed
         current_time = datetime.now()
-        if (current_time - start_time_frames).total_seconds() >= 10:
-            # If so, close video window and return data
-            cap.release()
-            cv2.destroyAllWindows()
-            return
+        # if (current_time - start_time_frames).total_seconds() >= 10:
+        #     # If so, close video window and return data
+        #     cap.release()
+        #     cv2.destroyAllWindows()
+        #     return
 
         cv2.waitKey(1000 // desired_fps)
 
