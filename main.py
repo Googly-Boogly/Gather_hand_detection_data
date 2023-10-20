@@ -23,13 +23,15 @@ def main_loop_tests():
     cap = cv2.VideoCapture(0)
     tracker = handTracker()
 
-    desired_fps = 10
+    desired_fps = 30
 
     frame_accumulator = []  # To store frames for the last 3 seconds
     start_time = datetime.now()  # Start time of the 5-second interval
     start_time_frames = datetime.now()
     text = ''
+    rand_dict = {}
     font_color = (0,0,0)
+    rand_num = -1
     while True:
 
         frame_start_time = datetime.now()
@@ -57,20 +59,28 @@ def main_loop_tests():
         # Check if 5 seconds have elapsed
         current_time = datetime.now()
         if (current_time - start_time).total_seconds() >= 5:
-            start_time = current_time
-            start_time_frames = current_time
-            frame_accumulator = []
-            rand = get_random()
-            text = rand[0]
-            font_color = rand[1]
-
-        if (current_time - start_time_frames).total_seconds() >= 2:
             if not text == '':
-                frames_to_send = frame_accumulator
-                # print(len(frames_to_send))
-                store_data(frames_to_send)
-                store_data(data=text, filename='labels.txt')
-                text = ''
+                start_time = current_time
+                start_time_frames = current_time
+                store_data_data = [rand_dict['text'], frame_accumulator]
+                store_data(store_data_data)
+                store_data(data=[rand_dict['text2']], filename='labels.txt')
+                rand_dict = get_random()
+                text = rand_dict['text']
+                font_color = rand_dict['font_color']
+            else:
+                rand_dict = get_random()
+                print(rand_dict)
+                text = rand_dict['text']
+                font_color = rand_dict['font_color']
+
+
+        if (current_time - start_time_frames).total_seconds() >= 3:
+
+            if not text == '':
+                frame_accumulator = []
+                text = rand_dict['text2']
+                font_color = rand_dict['font_color2']
 
         key = cv2.waitKey(1000 // desired_fps)
 
@@ -107,6 +117,61 @@ def get_random():
     randomly returns the text hand down, hand up, hand steady and the font color
     :return: text and font color
     """
+    random_num = random.randint(0, 8)
+    # 0 will be point hand down
+    # 1 will be point hand up
+    # 2 will be keep hand steady
+    if random_num == 0:
+        text = 'Start with HAND DOWN, '
+        text2 = 'Than go to HAND MIDDLE'
+        font_color = (255, 255, 0)
+        font_color2 = (0, 255, 255)
+    elif random_num == 1:
+        text = 'Start with HAND DOWN, '
+        text2 = 'Than go to HAND UP'
+        font_color = (255, 255, 0)
+        font_color2 = (255, 0, 255)
+    elif random_num == 6:
+        text = 'Start with HAND DOWN, '
+        text2 = 'Than KEEP STILL'
+        font_color = (255, 255, 0)
+        font_color2 = (255, 255, 0)
+
+    elif random_num == 2:
+        text = 'Start with HAND MIDDLE, '
+        text2 = 'Than go to HAND DOWN'
+        font_color = (0, 255, 255)
+        font_color2 = (255, 255, 0)
+    elif random_num == 3:
+        text = 'Start with HAND MIDDLE, '
+        text2 = 'Than go to HAND UP'
+        font_color = (0, 255, 255)
+        font_color2 = (255, 0, 255)
+    elif random_num == 4:
+        text = 'Start with HAND MIDDLE, '
+        text2 = 'Than KEEP STILL'
+        font_color = (0, 255, 255)
+        font_color2 = (0, 255, 255)
+
+    elif random_num == 5:
+        text = 'Start with HAND UP, '
+        text2 = 'Than go to HAND DOWN'
+        font_color = (255, 0, 255)
+        font_color2 = (255, 255, 0)
+    elif random_num == 7:
+        text = 'Start with HAND UP, '
+        text2 = 'Than KEEP STILL'
+        font_color = (255, 0, 255)
+        font_color2 = (255, 0, 255)
+    elif random_num == 8:
+        text = 'Start with HAND UP, '
+        text2 = 'Than go to HAND MIDDLE'
+        font_color = (255, 0, 255)
+        font_color2 = (0, 255, 255)
+    return {'text': text, 'font_color': font_color, "random_num": random_num, 'text2': text2, 'font_color2': font_color2}
+
+
+def get_random_start():
     random_num = random.randint(0, 2)
     # 0 will be point hand down
     # 1 will be point hand up
@@ -125,16 +190,16 @@ def get_random():
 
 def start_function():
 
-    x = input('Hello, would you like to (gather) data or (view) data or (combine) data: ')
-    if x.lower() == 'gather':
+    input_str = input('Hello, would you like to (gather) data or (view) data or (combine) data: ')
+    if input_str.lower() == 'gather':
         print('Press q to exit out')
         delete_last_n_lines() # deletes last 3 lines of the txt file incase when shutting off you moved your hand weird
         main_loop_tests()
-    if x.lower() == 'view':
+    if input_str.lower() == 'view':
         for x in range(count_lines_in_file()):
             data = run_txt_to_data(x + 1)
             print(data)
-    if x.lower() == 'combine':
+    if input_str.lower() == 'combine':
         data_files = ['data.txt', 'data_1.txt', 'data_2.txt', 'data_3.txt', 'data_4.txt', 'data_5.txt', 'data_6.txt',  'data_7.txt']
         total_data = []
         for data_file in data_files:
@@ -148,11 +213,11 @@ def start_function():
             #         print(z)
 
         # creates a new file called total_data with all the data
-        for data in total_data:
+        for data4 in total_data:
             for data3 in data4:
                 store_data(data3, filename='total_data.txt')
 
 
-
 if __name__ == '__main__':
-    start_function()
+    while True:
+        start_function()
