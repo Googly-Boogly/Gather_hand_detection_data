@@ -3,7 +3,10 @@ import cv2
 from handtrackingmodule import handTracker
 import random
 import json
-from data_handling import run_txt_to_data, count_lines_in_file, delete_last_n_lines, store_data
+from data_handling import handle_data
+import base64
+import gzip
+import numpy as np
 
 
 def main_loop_tests():
@@ -26,17 +29,20 @@ def main_loop_tests():
     desired_fps = 30
 
     frame_accumulator = []  # To store frames for the last 3 seconds
+    image_with_hand_accumulator = [] # the image quality is 480 x 640
+    image_no_hand_accumulator = []
     start_time = datetime.now()  # Start time of the 5-second interval
     start_time_frames = datetime.now()
     text = ''
     rand_dict = {}
     font_color = (0,0,0)
-    rand_num = -1
+    data_txt = handle_data('total_data/data.txt')
+    labels_txt = handle_data('total_data/labels.txt')
     while True:
 
-        frame_start_time = datetime.now()
-
         success, image = cap.read()
+
+        image_no_hand_accumulator.append(image)
         image = tracker.handsFinder(image)
         lmList = tracker.positionFinder(image)
 
@@ -46,9 +52,9 @@ def main_loop_tests():
             elif lmList[4][1] > 600:
                 print('Right')
 
+        image_with_hand_accumulator.append(image)
         image = add_text_to_image(image=image, text=text, font_color=font_color)
         cv2.imshow("Video", image)
-
         frame_accumulator.append(lmList)
 
         # Calculate the time taken for processing and display
@@ -60,25 +66,35 @@ def main_loop_tests():
         current_time = datetime.now()
         if (current_time - start_time).total_seconds() >= 5:
             if not text == '':
+
                 start_time = current_time
                 start_time_frames = current_time
                 store_data_data = [rand_dict['text'], frame_accumulator]
-                store_data(store_data_data)
-                store_data(data=[rand_dict['text2']], filename='labels.txt')
+                data_txt.store_data(store_data_data)
+                num_lines = data_txt.count_lines_in_file()
+                image_data_with_dots = np.array(image_with_hand_accumulator)
+                np.save(f'total_data/data_with_dots_files/image_data{num_lines}.npy', image_data_with_dots)
+                image_data_with_no_dots = np.array(image_no_hand_accumulator)
+                np.save(f'total_data/data_no_dots_files/image_data{num_lines}.npy', image_data_with_no_dots)
+                labels_txt.store_data(data=[rand_dict['text2']])
                 rand_dict = get_random()
                 text = rand_dict['text']
                 font_color = rand_dict['font_color']
+                image_with_hand_accumulator = []
+                image_no_hand_accumulator = []
             else:
                 rand_dict = get_random()
-                print(rand_dict)
                 text = rand_dict['text']
                 font_color = rand_dict['font_color']
-
+                image_with_hand_accumulator = []
+                image_no_hand_accumulator = []
 
         if (current_time - start_time_frames).total_seconds() >= 3:
-
             if not text == '':
+                start_time_frames = current_time
                 frame_accumulator = []
+                image_with_hand_accumulator = []
+                image_no_hand_accumulator = []
                 text = rand_dict['text2']
                 font_color = rand_dict['font_color2']
 
@@ -189,17 +205,22 @@ def get_random_start():
 
 
 def start_function():
-
+    data_txt = handle_data('total_data/data.txt')
+    labels_txt = handle_data('total_data/labels.txt')
     input_str = input('Hello, would you like to (gather) data or (view) data or (combine) data: ')
     if input_str.lower() == 'gather':
         print('Press q to exit out')
-        delete_last_n_lines() # deletes last 3 lines of the txt file incase when shutting off you moved your hand weird
+        num_lines = data_txt.count_lines_in_file()
+        data_txt.delete_last_n_lines() # deletes last 3 lines of the txt file incase when shutting off you moved your hand weird
+        labels_txt.delete_last_n_lines()
+        data_txt.delete_video_data([num_lines, num_lines-1, num_lines-2])
         main_loop_tests()
     if input_str.lower() == 'view':
-        for x in range(count_lines_in_file()):
-            data = run_txt_to_data(x + 1)
+        for x in range(data_txt.count_lines_in_file()):
+            data = data_txt.run_txt_to_data(x + 1)
             print(data)
     if input_str.lower() == 'combine':
+        raise 'error'
         data_files = ['data.txt', 'data_1.txt', 'data_2.txt', 'data_3.txt', 'data_4.txt', 'data_5.txt', 'data_6.txt',  'data_7.txt']
         total_data = []
         for data_file in data_files:
@@ -213,9 +234,9 @@ def start_function():
             #         print(z)
 
         # creates a new file called total_data with all the data
-        for data4 in total_data:
-            for data3 in data4:
-                store_data(data3, filename='total_data.txt')
+        # for data4 in total_data:
+        #     for data3 in data4:
+        #         store_data(data3, filename='total_data.txt')
 
 
 if __name__ == '__main__':
